@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DcMessageMapper">
+    
+    <resultMap type="DcMessage" id="DcMessageResult">
+        <result property="messageId"        column="message_id"        />
+        <result property="senderId"         column="sender_id"         />
+        <result property="receiverId"       column="receiver_id"       />
+        <result property="messageType"      column="message_type"      />
+        <result property="messageTitle"     column="message_title"     />
+        <result property="messageContent"   column="message_content"   />
+        <result property="relatedId"        column="related_id"        />
+        <result property="relatedType"      column="related_type"       />
+        <result property="isRead"           column="is_read"            />
+        <result property="readTime"         column="read_time"         />
+        <result property="delFlag"          column="del_flag"           />
+        <result property="createTime"       column="create_time"        />
+        <result property="senderNickName"   column="sender_nick_name"  />
+        <result property="senderAvatar"     column="sender_avatar"     />
+    </resultMap>
+
+    <sql id="selectDcMessageVo">
+        select m.message_id, m.sender_id, m.receiver_id, m.message_type, m.message_title,
+               m.message_content, m.related_id, m.related_type, m.is_read, m.read_time,
+               m.del_flag, m.create_time,
+               u.nick_name as sender_nick_name, u.avatar as sender_avatar
+        from dc_message m
+        left join sys_user u on m.sender_id = u.user_id
+    </sql>
+
+    <select id="selectDcMessageList" resultMap="DcMessageResult">
+        <include refid="selectDcMessageVo"/>
+        <where>
+            m.receiver_id = #{receiverId} and m.del_flag = '0'
+            <if test="messageType != null and messageType != ''"> and m.message_type = #{messageType}</if>
+        </where>
+        order by m.create_time desc
+    </select>
+    
+    <insert id="insertDcMessage" parameterType="DcMessage" useGeneratedKeys="true" keyProperty="messageId">
+        insert into dc_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="senderId != null">sender_id,</if>
+            <if test="receiverId != null">receiver_id,</if>
+            <if test="messageType != null and messageType != ''">message_type,</if>
+            <if test="messageTitle != null">message_title,</if>
+            <if test="messageContent != null and messageContent != ''">message_content,</if>
+            <if test="relatedId != null">related_id,</if>
+            <if test="relatedType != null">related_type,</if>
+            <if test="isRead != null">is_read,</if>
+            <if test="delFlag != null">del_flag,</if>
+            create_time
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="senderId != null">#{senderId},</if>
+            <if test="receiverId != null">#{receiverId},</if>
+            <if test="messageType != null and messageType != ''">#{messageType},</if>
+            <if test="messageTitle != null">#{messageTitle},</if>
+            <if test="messageContent != null and messageContent != ''">#{messageContent},</if>
+            <if test="relatedId != null">#{relatedId},</if>
+            <if test="relatedType != null">#{relatedType},</if>
+            <if test="isRead != null">#{isRead},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            sysdate()
+         </trim>
+    </insert>
+
+    <update id="markAsRead" parameterType="Long">
+        update dc_message
+        set is_read = '1', read_time = sysdate()
+        where message_id = #{messageId}
+    </update>
+
+    <select id="countUnread" resultType="int">
+        select count(*) from dc_message
+        where receiver_id = #{receiverId} and is_read = '0' and del_flag = '0'
+        <if test="messageType != null and messageType != ''"> and message_type = #{messageType}</if>
+    </select>
+
+    <update id="deleteMessage">
+        update dc_message
+        set del_flag = '2'
+        where message_id = #{messageId} and receiver_id = #{receiverId}
+    </update>
+
+</mapper>
+

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DcErrandTaskMapper">
+    
+    <resultMap type="DcErrandTask" id="DcErrandTaskResult">
+        <result property="taskId"          column="task_id"          />
+        <result property="userId"          column="user_id"          />
+        <result property="taskType"        column="task_type"        />
+        <result property="taskTitle"       column="task_title"       />
+        <result property="taskDesc"        column="task_desc"        />
+        <result property="startLocation"   column="start_location"  />
+        <result property="endLocation"     column="end_location"    />
+        <result property="taskReward"      column="task_reward"      />
+        <result property="timeRequirement" column="time_requirement" />
+        <result property="taskStatus"     column="task_status"      />
+        <result property="accepterId"      column="accepter_id"       />
+        <result property="acceptTime"      column="accept_time"      />
+        <result property="completeTime"    column="complete_time"    />
+        <result property="viewCount"       column="view_count"       />
+        <result property="delFlag"         column="del_flag"         />
+        <result property="createBy"        column="create_by"         />
+        <result property="createTime"      column="create_time"      />
+        <result property="updateBy"        column="update_by"        />
+        <result property="updateTime"      column="update_time"      />
+        <result property="remark"          column="remark"          />
+        <result property="nickName"       column="nick_name"       />
+        <result property="avatar"         column="avatar"           />
+    </resultMap>
+
+    <sql id="selectDcErrandTaskVo">
+        select t.task_id, t.user_id, t.task_type, t.task_title, t.task_desc, 
+               t.start_location, t.end_location, t.task_reward, t.time_requirement, 
+               t.task_status, t.accepter_id, t.accept_time, t.complete_time, 
+               t.view_count, t.del_flag, t.create_by, t.create_time, 
+               t.update_by, t.update_time, t.remark,
+               u.nick_name, u.avatar
+        from dc_errand_task t
+        left join sys_user u on t.user_id = u.user_id
+    </sql>
+
+    <select id="selectDcErrandTaskByTaskId" parameterType="Long" resultMap="DcErrandTaskResult">
+        <include refid="selectDcErrandTaskVo"/>
+        where t.task_id = #{taskId} and t.del_flag = '0'
+    </select>
+
+    <select id="selectDcErrandTaskList" parameterType="DcErrandTask" resultMap="DcErrandTaskResult">
+        <include refid="selectDcErrandTaskVo"/>
+        <where>  
+            t.del_flag = '0'
+            <if test="userId != null"> and t.user_id = #{userId}</if>
+            <if test="accepterId != null"> and t.accepter_id = #{accepterId}</if>
+            <if test="taskType != null and taskType != ''"> and t.task_type = #{taskType}</if>
+            <if test="taskTitle != null and taskTitle != ''"> and t.task_title like concat('%', #{taskTitle}, '%')</if>
+            <if test="taskStatus != null and taskStatus != ''"> and t.task_status = #{taskStatus}</if>
+        </where>
+        order by t.create_time desc
+    </select>
+    
+    <insert id="insertDcErrandTask" parameterType="DcErrandTask" useGeneratedKeys="true" keyProperty="taskId">
+        insert into dc_errand_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            task_type,
+            <if test="taskTitle != null and taskTitle != ''">task_title,</if>
+            <if test="taskDesc != null">task_desc,</if>
+            <if test="startLocation != null and startLocation != ''">start_location,</if>
+            <if test="endLocation != null and endLocation != ''">end_location,</if>
+            <if test="taskReward != null">task_reward,</if>
+            <if test="timeRequirement != null">time_requirement,</if>
+            <if test="taskStatus != null">task_status,</if>
+            <if test="accepterId != null">accepter_id,</if>
+            <if test="acceptTime != null">accept_time,</if>
+            <if test="completeTime != null">complete_time,</if>
+            <if test="viewCount != null">view_count,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null">remark,</if>
+            create_time
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <choose>
+                <when test="taskType != null and taskType != ''">#{taskType},</when>
+                <otherwise>'其他',</otherwise>
+            </choose>
+            <if test="taskTitle != null and taskTitle != ''">#{taskTitle},</if>
+            <if test="taskDesc != null">#{taskDesc},</if>
+            <if test="startLocation != null and startLocation != ''">#{startLocation},</if>
+            <if test="endLocation != null and endLocation != ''">#{endLocation},</if>
+            <if test="taskReward != null">#{taskReward},</if>
+            <if test="timeRequirement != null">#{timeRequirement},</if>
+            <if test="taskStatus != null">#{taskStatus},</if>
+            <if test="accepterId != null">#{accepterId},</if>
+            <if test="acceptTime != null">#{acceptTime},</if>
+            <if test="completeTime != null">#{completeTime},</if>
+            <if test="viewCount != null">#{viewCount},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null">#{remark},</if>
+            sysdate()
+         </trim>
+    </insert>
+
+    <update id="updateDcErrandTask" parameterType="DcErrandTask">
+        update dc_errand_task
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="taskType != null and taskType != ''">task_type = #{taskType},</if>
+            <if test="taskTitle != null and taskTitle != ''">task_title = #{taskTitle},</if>
+            <if test="taskDesc != null">task_desc = #{taskDesc},</if>
+            <if test="startLocation != null and startLocation != ''">start_location = #{startLocation},</if>
+            <if test="endLocation != null and endLocation != ''">end_location = #{endLocation},</if>
+            <if test="taskReward != null">task_reward = #{taskReward},</if>
+            <if test="timeRequirement != null">time_requirement = #{timeRequirement},</if>
+            <if test="taskStatus != null">task_status = #{taskStatus},</if>
+            <if test="accepterId != null">accepter_id = #{accepterId},</if>
+            <if test="acceptTime != null">accept_time = #{acceptTime},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </trim>
+        where task_id = #{taskId}
+    </update>
+
+    <delete id="deleteDcErrandTaskByTaskId" parameterType="Long">
+        update dc_errand_task set del_flag = '2' where task_id = #{taskId}
+    </delete>
+
+    <delete id="deleteDcErrandTaskByTaskIds" parameterType="String">
+        update dc_errand_task set del_flag = '2' where task_id in 
+        <foreach item="taskId" collection="array" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+    </delete>
+
+    <update id="incrementViewCount" parameterType="Long">
+        update dc_errand_task set view_count = view_count + 1 where task_id = #{taskId}
+    </update>
+
+    <update id="acceptTask">
+        update dc_errand_task 
+        set task_status = '1', 
+            accepter_id = #{accepterId}, 
+            accept_time = sysdate(),
+            update_time = sysdate()
+        where task_id = #{taskId} and task_status = '0'
+    </update>
+
+    <update id="completeTask" parameterType="Long">
+        update dc_errand_task 
+        set task_status = '2', 
+            complete_time = sysdate(),
+            update_time = sysdate()
+        where task_id = #{taskId}
+    </update>
+
+    <select id="selectHotErrandTaskList" parameterType="int" resultMap="DcErrandTaskResult">
+        <include refid="selectDcErrandTaskVo"/>
+        where t.del_flag = '0' and t.task_status = '0'
+        order by t.view_count desc
+        limit #{limit}
+    </select>
+</mapper>
+

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DcSecondhandCategoryMapper">
+    
+    <resultMap type="DcSecondhandCategory" id="DcSecondhandCategoryResult">
+        <result property="categoryId"    column="category_id"    />
+        <result property="categoryName"  column="category_name"  />
+        <result property="categoryIcon"  column="category_icon"   />
+        <result property="sortOrder"     column="sort_order"      />
+        <result property="status"       column="status"         />
+        <result property="createBy"     column="create_by"       />
+        <result property="createTime"   column="create_time"     />
+        <result property="updateBy"     column="update_by"       />
+        <result property="updateTime"   column="update_time"     />
+        <result property="remark"       column="remark"         />
+    </resultMap>
+
+    <sql id="selectDcSecondhandCategoryVo">
+        select category_id, category_name, category_icon, sort_order, status, create_by, create_time, update_by, update_time, remark 
+        from dc_secondhand_category
+    </sql>
+
+    <select id="selectDcSecondhandCategoryByCategoryId" parameterType="Long" resultMap="DcSecondhandCategoryResult">
+        <include refid="selectDcSecondhandCategoryVo"/>
+        where category_id = #{categoryId}
+    </select>
+
+    <select id="selectDcSecondhandCategoryList" parameterType="DcSecondhandCategory" resultMap="DcSecondhandCategoryResult">
+        <include refid="selectDcSecondhandCategoryVo"/>
+        <where>  
+            <if test="categoryName != null and categoryName != ''"> and category_name like concat('%', #{categoryName}, '%')</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+        </where>
+        order by sort_order
+    </select>
+    
+    <insert id="insertDcSecondhandCategory" parameterType="DcSecondhandCategory" useGeneratedKeys="true" keyProperty="categoryId">
+        insert into dc_secondhand_category
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="categoryName != null and categoryName != ''">category_name,</if>
+            <if test="categoryIcon != null">category_icon,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null">remark,</if>
+            create_time
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="categoryName != null and categoryName != ''">#{categoryName},</if>
+            <if test="categoryIcon != null">#{categoryIcon},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null">#{remark},</if>
+            sysdate()
+         </trim>
+    </insert>
+
+    <update id="updateDcSecondhandCategory" parameterType="DcSecondhandCategory">
+        update dc_secondhand_category
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="categoryName != null and categoryName != ''">category_name = #{categoryName},</if>
+            <if test="categoryIcon != null">category_icon = #{categoryIcon},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </trim>
+        where category_id = #{categoryId}
+    </update>
+
+    <delete id="deleteDcSecondhandCategoryByCategoryId" parameterType="Long">
+        delete from dc_secondhand_category where category_id = #{categoryId}
+    </delete>
+
+    <delete id="deleteDcSecondhandCategoryByCategoryIds" parameterType="String">
+        delete from dc_secondhand_category where category_id in 
+        <foreach item="categoryId" collection="array" open="(" separator="," close=")">
+            #{categoryId}
+        </foreach>
+    </delete>
+</mapper>
+

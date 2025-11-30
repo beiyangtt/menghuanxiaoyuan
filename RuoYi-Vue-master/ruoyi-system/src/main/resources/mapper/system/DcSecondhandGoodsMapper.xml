@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DcSecondhandGoodsMapper">
+    
+    <resultMap type="DcSecondhandGoods" id="DcSecondhandGoodsResult">
+        <result property="goodsId"       column="goods_id"       />
+        <result property="userId"        column="user_id"        />
+        <result property="categoryId"   column="category_id"    />
+        <result property="goodsTitle"   column="goods_title"    />
+        <result property="goodsDesc"    column="goods_desc"     />
+        <result property="goodsPrice"   column="goods_price"     />
+        <result property="originalPrice" column="original_price"  />
+        <result property="goodsStatus"  column="goods_status"   />
+        <result property="contactWay"   column="contact_way"    />
+        <result property="location"     column="location"       />
+        <result property="viewCount"    column="view_count"     />
+        <result property="likeCount"    column="like_count"     />
+        <result property="collectCount" column="collect_count"  />
+        <result property="delFlag"      column="del_flag"       />
+        <result property="createBy"     column="create_by"       />
+        <result property="createTime"   column="create_time"    />
+        <result property="updateBy"     column="update_by"      />
+        <result property="updateTime"   column="update_time"    />
+        <result property="remark"       column="remark"         />
+        <result property="categoryName" column="category_name"  />
+        <result property="nickName"     column="nick_name"      />
+        <result property="avatar"       column="avatar"         />
+        <result property="images"       column="images"         />
+    </resultMap>
+
+    <sql id="selectDcSecondhandGoodsVo">
+        select g.goods_id, g.user_id, g.category_id, g.goods_title, g.goods_desc, g.goods_price, 
+               g.original_price, g.goods_status, g.contact_way, g.location, g.view_count, 
+               g.like_count, g.collect_count, g.del_flag, g.images, g.create_by, g.create_time, 
+               g.update_by, g.update_time, g.remark,
+               c.category_name, u.nick_name, u.avatar
+        from dc_secondhand_goods g
+        left join dc_secondhand_category c on g.category_id = c.category_id
+        left join sys_user u on g.user_id = u.user_id
+    </sql>
+
+    <select id="selectDcSecondhandGoodsByGoodsId" parameterType="Long" resultMap="DcSecondhandGoodsResult">
+        <include refid="selectDcSecondhandGoodsVo"/>
+        where g.goods_id = #{goodsId} and g.del_flag = '0'
+    </select>
+
+    <select id="selectDcSecondhandGoodsList" parameterType="DcSecondhandGoods" resultMap="DcSecondhandGoodsResult">
+        <include refid="selectDcSecondhandGoodsVo"/>
+        <where>  
+            g.del_flag = '0'
+            <if test="userId != null"> and g.user_id = #{userId}</if>
+            <if test="categoryId != null"> and g.category_id = #{categoryId}</if>
+            <if test="goodsTitle != null and goodsTitle != ''"> and g.goods_title like concat('%', #{goodsTitle}, '%')</if>
+            <if test="goodsStatus != null and goodsStatus != ''"> and g.goods_status = #{goodsStatus}</if>
+        </where>
+        order by g.create_time desc
+    </select>
+    
+    <insert id="insertDcSecondhandGoods" parameterType="DcSecondhandGoods" useGeneratedKeys="true" keyProperty="goodsId">
+        insert into dc_secondhand_goods
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="goodsTitle != null and goodsTitle != ''">goods_title,</if>
+            <if test="goodsDesc != null">goods_desc,</if>
+            <if test="goodsPrice != null">goods_price,</if>
+            <if test="originalPrice != null">original_price,</if>
+            <if test="goodsStatus != null">goods_status,</if>
+            <if test="contactWay != null">contact_way,</if>
+            <if test="location != null">location,</if>
+            <if test="viewCount != null">view_count,</if>
+            <if test="likeCount != null">like_count,</if>
+            <if test="collectCount != null">collect_count,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="images != null and images != ''">images,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null">remark,</if>
+            create_time
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="goodsTitle != null and goodsTitle != ''">#{goodsTitle},</if>
+            <if test="goodsDesc != null">#{goodsDesc},</if>
+            <if test="goodsPrice != null">#{goodsPrice},</if>
+            <if test="originalPrice != null">#{originalPrice},</if>
+            <if test="goodsStatus != null">#{goodsStatus},</if>
+            <if test="contactWay != null">#{contactWay},</if>
+            <if test="location != null">#{location},</if>
+            <if test="viewCount != null">#{viewCount},</if>
+            <if test="likeCount != null">#{likeCount},</if>
+            <if test="collectCount != null">#{collectCount},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="images != null and images != ''">#{images},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null">#{remark},</if>
+            sysdate()
+         </trim>
+    </insert>
+
+    <update id="updateDcSecondhandGoods" parameterType="DcSecondhandGoods">
+        update dc_secondhand_goods
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="goodsTitle != null and goodsTitle != ''">goods_title = #{goodsTitle},</if>
+            <if test="goodsDesc != null">goods_desc = #{goodsDesc},</if>
+            <if test="goodsPrice != null">goods_price = #{goodsPrice},</if>
+            <if test="originalPrice != null">original_price = #{originalPrice},</if>
+            <if test="goodsStatus != null">goods_status = #{goodsStatus},</if>
+            <if test="contactWay != null">contact_way = #{contactWay},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="likeCount != null">like_count = #{likeCount},</if>
+            <if test="collectCount != null">collect_count = #{collectCount},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </trim>
+        where goods_id = #{goodsId}
+    </update>
+
+    <delete id="deleteDcSecondhandGoodsByGoodsId" parameterType="Long">
+        update dc_secondhand_goods set del_flag = '2' where goods_id = #{goodsId}
+    </delete>
+
+    <delete id="deleteDcSecondhandGoodsByGoodsIds" parameterType="String">
+        update dc_secondhand_goods set del_flag = '2' where goods_id in 
+        <foreach item="goodsId" collection="array" open="(" separator="," close=")">
+            #{goodsId}
+        </foreach>
+    </delete>
+
+    <update id="incrementViewCount" parameterType="Long">
+        update dc_secondhand_goods set view_count = view_count + 1 where goods_id = #{goodsId}
+    </update>
+
+    <select id="selectHotSecondhandGoodsList" parameterType="int" resultMap="DcSecondhandGoodsResult">
+        <include refid="selectDcSecondhandGoodsVo"/>
+        where g.del_flag = '0' and g.goods_status = '0'
+        order by g.view_count desc
+        limit #{limit}
+    </select>
+
+    <select id="selectFavoriteGoodsList" parameterType="Long" resultMap="DcSecondhandGoodsResult">
+        <include refid="selectDcSecondhandGoodsVo"/>
+        inner join dc_secondhand_favorite f on g.goods_id = f.goods_id
+        where f.user_id = #{userId} and g.del_flag = '0'
+        order by f.create_time desc
+    </select>
+
+    <select id="countFavoriteGoods" parameterType="Long" resultType="int">
+        select count(1)
+        from dc_secondhand_favorite f
+        inner join dc_secondhand_goods g on f.goods_id = g.goods_id
+        where f.user_id = #{userId} and g.del_flag = '0'
+    </select>
+
+    <select id="countMyGoods" parameterType="Long" resultType="int">
+        select count(1)
+        from dc_secondhand_goods
+        where user_id = #{userId} and del_flag = '0'
+    </select>
+</mapper>
+

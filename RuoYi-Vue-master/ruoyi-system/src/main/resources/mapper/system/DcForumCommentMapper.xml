@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DcForumCommentMapper">
+    
+    <resultMap type="DcForumComment" id="DcForumCommentResult">
+        <result property="commentId"       column="comment_id"       />
+        <result property="postId"          column="post_id"          />
+        <result property="userId"         column="user_id"           />
+        <result property="parentId"       column="parent_id"         />
+        <result property="commentContent" column="comment_content"   />
+        <result property="likeCount"      column="like_count"       />
+        <result property="status"        column="status"            />
+        <result property="delFlag"        column="del_flag"         />
+        <result property="createBy"       column="create_by"         />
+        <result property="createTime"     column="create_time"       />
+        <result property="updateBy"       column="update_by"         />
+        <result property="updateTime"     column="update_time"       />
+        <result property="nickName"       column="nick_name"         />
+        <result property="avatar"         column="avatar"           />
+    </resultMap>
+
+    <sql id="selectDcForumCommentVo">
+        select c.comment_id, c.post_id, c.user_id, c.parent_id, c.comment_content,
+               c.like_count, c.status, c.del_flag, c.create_by, c.create_time,
+               c.update_by, c.update_time,
+               u.nick_name, u.avatar
+        from dc_forum_comment c
+        left join sys_user u on c.user_id = u.user_id
+    </sql>
+
+    <select id="selectDcForumCommentByCommentId" parameterType="Long" resultMap="DcForumCommentResult">
+        <include refid="selectDcForumCommentVo"/>
+        where c.comment_id = #{commentId} and c.del_flag = '0'
+    </select>
+
+    <select id="selectDcForumCommentListByPostId" parameterType="Long" resultMap="DcForumCommentResult">
+        <include refid="selectDcForumCommentVo"/>
+        where c.post_id = #{postId} and c.del_flag = '0' and c.status = '0' and c.parent_id = 0
+        order by c.create_time asc
+    </select>
+    
+    <!-- 查询所有评论（包括子评论） -->
+    <select id="selectAllDcForumCommentListByPostId" parameterType="Long" resultMap="DcForumCommentResult">
+        <include refid="selectDcForumCommentVo"/>
+        where c.post_id = #{postId} and c.del_flag = '0' and c.status = '0'
+        order by c.parent_id asc, c.create_time asc
+    </select>
+    
+    <insert id="insertDcForumComment" parameterType="DcForumComment" useGeneratedKeys="true" keyProperty="commentId">
+        insert into dc_forum_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="postId != null">post_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="commentContent != null and commentContent != ''">comment_content,</if>
+            <if test="likeCount != null">like_count,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="postId != null">#{postId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="commentContent != null and commentContent != ''">#{commentContent},</if>
+            <if test="likeCount != null">#{likeCount},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+         </trim>
+    </insert>
+
+    <delete id="deleteDcForumCommentByCommentId" parameterType="Long">
+        update dc_forum_comment set del_flag = '2' where comment_id = #{commentId}
+    </delete>
+
+    <update id="incrementLikeCount" parameterType="Long">
+        update dc_forum_comment set like_count = like_count + 1 where comment_id = #{commentId}
+    </update>
+
+    <update id="decrementLikeCount" parameterType="Long">
+        update dc_forum_comment set like_count = like_count - 1 where comment_id = #{commentId} and like_count > 0
+    </update>
+
+</mapper>
+

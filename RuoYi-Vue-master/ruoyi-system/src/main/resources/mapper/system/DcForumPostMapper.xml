@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DcForumPostMapper">
+    
+    <resultMap type="DcForumPost" id="DcForumPostResult">
+        <result property="postId"          column="post_id"          />
+        <result property="userId"          column="user_id"          />
+        <result property="categoryId"      column="category_id"      />
+        <result property="postTitle"       column="post_title"       />
+        <result property="postContent"     column="post_content"     />
+        <result property="images"          column="images"           />
+        <result property="viewCount"       column="view_count"       />
+        <result property="likeCount"       column="like_count"       />
+        <result property="commentCount"   column="comment_count"    />
+        <result property="isTop"           column="is_top"           />
+        <result property="isHot"           column="is_hot"           />
+        <result property="status"        column="status"           />
+        <result property="delFlag"         column="del_flag"         />
+        <result property="createBy"        column="create_by"        />
+        <result property="createTime"      column="create_time"      />
+        <result property="updateBy"        column="update_by"        />
+        <result property="updateTime"      column="update_time"      />
+        <result property="remark"          column="remark"           />
+        <result property="nickName"        column="nick_name"        />
+        <result property="avatar"          column="avatar"           />
+        <result property="categoryName"    column="category_name"    />
+    </resultMap>
+
+    <sql id="selectDcForumPostVo">
+        select p.post_id, p.user_id, p.category_id, p.post_title, p.post_content, p.images,
+               p.view_count, p.like_count, p.comment_count, p.is_top, p.is_hot, p.status,
+               p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark,
+               u.nick_name, u.avatar, c.category_name
+        from dc_forum_post p
+        left join sys_user u on p.user_id = u.user_id
+        left join dc_forum_category c on p.category_id = c.category_id
+    </sql>
+
+    <select id="selectDcForumPostByPostId" parameterType="Long" resultMap="DcForumPostResult">
+        <include refid="selectDcForumPostVo"/>
+        where p.post_id = #{postId} and p.del_flag = '0' and p.status = '0'
+    </select>
+
+    <select id="selectDcForumPostList" parameterType="DcForumPost" resultMap="DcForumPostResult">
+        <include refid="selectDcForumPostVo"/>
+        <where>  
+            p.del_flag = '0' and p.status = '0'
+            <if test="userId != null"> and p.user_id = #{userId}</if>
+            <if test="categoryId != null"> and p.category_id = #{categoryId}</if>
+            <if test="postTitle != null and postTitle != ''"> and p.post_title like concat('%', #{postTitle}, '%')</if>
+            <if test="isTop != null and isTop != ''"> and p.is_top = #{isTop}</if>
+            <if test="isHot != null and isHot != ''"> and p.is_hot = #{isHot}</if>
+        </where>
+        order by p.is_top desc, p.create_time desc
+    </select>
+    
+    <insert id="insertDcForumPost" parameterType="DcForumPost" useGeneratedKeys="true" keyProperty="postId">
+        insert into dc_forum_post
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="postTitle != null and postTitle != ''">post_title,</if>
+            <if test="postContent != null">post_content,</if>
+            <if test="images != null">images,</if>
+            <if test="viewCount != null">view_count,</if>
+            <if test="likeCount != null">like_count,</if>
+            <if test="commentCount != null">comment_count,</if>
+            <if test="isTop != null">is_top,</if>
+            <if test="isHot != null">is_hot,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null">remark,</if>
+            create_time
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="postTitle != null and postTitle != ''">#{postTitle},</if>
+            <if test="postContent != null">#{postContent},</if>
+            <if test="images != null">#{images},</if>
+            <if test="viewCount != null">#{viewCount},</if>
+            <if test="likeCount != null">#{likeCount},</if>
+            <if test="commentCount != null">#{commentCount},</if>
+            <if test="isTop != null">#{isTop},</if>
+            <if test="isHot != null">#{isHot},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null">#{remark},</if>
+            sysdate()
+         </trim>
+    </insert>
+
+    <update id="updateDcForumPost" parameterType="DcForumPost">
+        update dc_forum_post
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="postTitle != null and postTitle != ''">post_title = #{postTitle},</if>
+            <if test="postContent != null">post_content = #{postContent},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="likeCount != null">like_count = #{likeCount},</if>
+            <if test="commentCount != null">comment_count = #{commentCount},</if>
+            <if test="isTop != null">is_top = #{isTop},</if>
+            <if test="isHot != null">is_hot = #{isHot},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </trim>
+        where post_id = #{postId}
+    </update>
+
+    <delete id="deleteDcForumPostByPostId" parameterType="Long">
+        update dc_forum_post set del_flag = '2' where post_id = #{postId}
+    </delete>
+
+    <delete id="deleteDcForumPostByPostIds" parameterType="String">
+        update dc_forum_post set del_flag = '2' where post_id in 
+        <foreach item="postId" collection="array" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+    </delete>
+
+    <update id="incrementViewCount" parameterType="Long">
+        update dc_forum_post set view_count = view_count + 1 where post_id = #{postId}
+    </update>
+
+    <update id="incrementLikeCount" parameterType="Long">
+        update dc_forum_post set like_count = like_count + 1 where post_id = #{postId}
+    </update>
+
+    <update id="decrementLikeCount" parameterType="Long">
+        update dc_forum_post set like_count = like_count - 1 where post_id = #{postId} and like_count > 0
+    </update>
+
+    <update id="incrementCommentCount" parameterType="Long">
+        update dc_forum_post set comment_count = comment_count + 1 where post_id = #{postId}
+    </update>
+
+    <update id="decrementCommentCount" parameterType="Long">
+        update dc_forum_post set comment_count = comment_count - 1 where post_id = #{postId} and comment_count > 0
+    </update>
+
+</mapper>
+

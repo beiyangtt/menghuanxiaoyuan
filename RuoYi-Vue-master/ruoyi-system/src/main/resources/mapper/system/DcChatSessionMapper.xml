@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DcChatSessionMapper">
+    
+    <resultMap type="DcChatSession" id="DcChatSessionResult">
+        <result property="sessionId"        column="session_id"        />
+        <result property="user1Id"          column="user1_id"          />
+        <result property="user2Id"          column="user2_id"          />
+        <result property="lastMessage"      column="last_message"     />
+        <result property="lastMessageTime"  column="last_message_time" />
+        <result property="user1Unread"      column="user1_unread"      />
+        <result property="user2Unread"      column="user2_unread"     />
+        <result property="user1Hidden"      column="user1_hidden"      />
+        <result property="user2Hidden"      column="user2_hidden"      />
+        <result property="delFlag"          column="del_flag"          />
+        <result property="createTime"       column="create_time"       />
+        <result property="updateTime"       column="update_time"       />
+        <result property="otherNickName"    column="other_nick_name"   />
+        <result property="otherAvatar"      column="other_avatar"      />
+        <result property="otherUserId"      column="other_user_id"     />
+    </resultMap>
+
+    <select id="selectDcChatSessionBySessionId" parameterType="Long" resultMap="DcChatSessionResult">
+        select session_id, user1_id, user2_id, last_message, last_message_time,
+               user1_unread, user2_unread, user1_hidden, user2_hidden, del_flag, create_time, update_time
+        from dc_chat_session
+        where session_id = #{sessionId} and del_flag = '0'
+    </select>
+
+    <select id="selectDcChatSessionByUsers" resultMap="DcChatSessionResult">
+        select session_id, user1_id, user2_id, last_message, last_message_time,
+               user1_unread, user2_unread, user1_hidden, user2_hidden, del_flag, create_time, update_time
+        from dc_chat_session
+        where ((user1_id = #{user1Id} and user2_id = #{user2Id}) 
+            or (user1_id = #{user2Id} and user2_id = #{user1Id}))
+        and del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="selectDcChatSessionListByUserId" parameterType="Long" resultMap="DcChatSessionResult">
+        select s.session_id, s.user1_id, s.user2_id, s.last_message, s.last_message_time,
+               s.user1_unread, s.user2_unread, s.user1_hidden, s.user2_hidden, s.del_flag, s.create_time, s.update_time,
+               u.nick_name as other_nick_name, u.avatar as other_avatar,
+               case when s.user1_id = #{userId} then s.user2_id else s.user1_id end as other_user_id
+        from dc_chat_session s
+        left join sys_user u 
+          on (case when s.user1_id = #{userId} then s.user2_id else s.user1_id end) = u.user_id
+        where (
+            (s.user1_id = #{userId} and s.user1_hidden = '0')
+            or
+            (s.user2_id = #{userId} and s.user2_hidden = '0')
+        ) and s.del_flag = '0'
+        order by s.last_message_time desc
+    </select>
+    
+    <insert id="insertDcChatSession" parameterType="DcChatSession" useGeneratedKeys="true" keyProperty="sessionId">
+        insert into dc_chat_session
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="user1Id != null">user1_id,</if>
+            <if test="user2Id != null">user2_id,</if>
+            <if test="lastMessage != null">last_message,</if>
+            <if test="lastMessageTime != null">last_message_time,</if>
+            <if test="user1Unread != null">user1_unread,</if>
+            <if test="user2Unread != null">user2_unread,</if>
+            <if test="delFlag != null">del_flag,</if>
+            create_time, update_time
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="user1Id != null">#{user1Id},</if>
+            <if test="user2Id != null">#{user2Id},</if>
+            <if test="lastMessage != null">#{lastMessage},</if>
+            <if test="lastMessageTime != null">#{lastMessageTime},</if>
+            <if test="user1Unread != null">#{user1Unread},</if>
+            <if test="user2Unread != null">#{user2Unread},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            sysdate(), sysdate()
+         </trim>
+    </insert>
+
+    <update id="updateDcChatSession" parameterType="DcChatSession">
+        update dc_chat_session
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="lastMessage != null">last_message = #{lastMessage},</if>
+            <if test="lastMessageTime != null">last_message_time = #{lastMessageTime},</if>
+            <if test="user1Unread != null">user1_unread = #{user1Unread},</if>
+            <if test="user2Unread != null">user2_unread = #{user2Unread},</if>
+            update_time = sysdate()
+        </trim>
+        where session_id = #{sessionId}
+    </update>
+
+    <update id="updateLastMessage">
+        update dc_chat_session
+        set last_message = #{lastMessage}, last_message_time = sysdate(), update_time = sysdate()
+        where session_id = #{sessionId}
+    </update>
+
+    <update id="incrementUnread">
+        update dc_chat_session
+        set user1_unread = case when user1_id = #{userId} then user1_unread + 1 else user1_unread end,
+            user2_unread = case when user2_id = #{userId} then user2_unread + 1 else user2_unread end,
+            update_time = sysdate()
+        where session_id = #{sessionId}
+    </update>
+
+    <update id="clearUnread">
+        update dc_chat_session
+        set user1_unread = case when user1_id = #{userId} then 0 else user1_unread end,
+            user2_unread = case when user2_id = #{userId} then 0 else user2_unread end,
+            update_time = sysdate()
+        where session_id = #{sessionId}
+    </update>
+
+    <update id="hideSessionForUser">
+        update dc_chat_session
+        set user1_hidden = case when user1_id = #{userId} then '1' else user1_hidden end,
+            user2_hidden = case when user2_id = #{userId} then '1' else user2_hidden end,
+            update_time = sysdate()
+        where session_id = #{sessionId}
+    </update>
+
+    <update id="restoreSessionForUser">
+        update dc_chat_session
+        set user1_hidden = case when user1_id = #{userId} then '0' else user1_hidden end,
+            user2_hidden = case when user2_id = #{userId} then '0' else user2_hidden end,
+            update_time = sysdate()
+        where session_id = #{sessionId}
+    </update>
+
+</mapper>
+

@@ -1,0 +1,88 @@
+# 生产环境配置（外部配置文件，优先级高于jar包内配置）
+# 此文件可以直接修改，无需重新打包jar包
+
+ruoyi:
+  # 文件路径（Docker容器内路径）
+  profile: /home/dreamcampus/uploadPath
+
+# Spring配置
+spring:
+  # redis 配置（使用环境变量覆盖）
+  redis:
+    # 地址（从环境变量获取，如果没有则使用默认值）
+    host: ${SPRING_REDIS_HOST:ruoyi-redis}
+    # 端口
+    port: ${SPRING_REDIS_PORT:6379}
+    # 数据库索引
+    database: 0
+    # 密码（如果有）
+    password: ${SPRING_REDIS_PASSWORD:}
+    # 连接超时时间
+    timeout: 10s
+    lettuce:
+      pool:
+        min-idle: 0
+        max-idle: 8
+        max-active: 8
+        max-wait: -1ms
+  # 数据源配置（使用环境变量）
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    druid:
+      # 主库数据源（从环境变量获取，支持SPRING_DATASOURCE_DRUID_MASTER_*格式）
+      master:
+        url: ${SPRING_DATASOURCE_DRUID_MASTER_URL:jdbc:mysql://ruoyi-mysql:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai}
+        username: ${SPRING_DATASOURCE_DRUID_MASTER_USERNAME:root}
+        password: ${SPRING_DATASOURCE_DRUID_MASTER_PASSWORD:123456}
+      # 从库数据源
+      slave:
+        enabled: false
+      # 初始连接数
+      initialSize: 5
+      # 最小连接池数量
+      minIdle: 10
+      # 最大连接池数量
+      maxActive: 20
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+      # 配置连接超时时间
+      connectTimeout: 30000
+      # 配置网络超时时间
+      socketTimeout: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      timeBetweenEvictionRunsMillis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      minEvictableIdleTimeMillis: 300000
+      # 配置一个连接在池中最大生存的时间，单位是毫秒
+      maxEvictableIdleTimeMillis: 900000
+      # 配置检测连接是否有效
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      webStatFilter:
+        enabled: true
+      statViewServlet:
+        enabled: true
+        allow:
+        url-pattern: /druid/*
+        login-username: ruoyi
+        login-password: 123456
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 1000
+          merge-sql: true
+        wall:
+          config:
+            multi-statement-allow: true
+
+# 日志配置
+logging:
+  level:
+    com.ruoyi: info
+    org.springframework: warn
+    root: info
+

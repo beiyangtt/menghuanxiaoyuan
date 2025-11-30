@@ -1,0 +1,103 @@
+
+services:
+  ruoyi-mysql:
+    image: mysql:8.0
+    container_name: ruoyi-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: ry-vue
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mysql/init:/docker-entrypoint-initdb.d
+      - ./mysql/conf.d:/etc/mysql/conf.d
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ruoyi-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ruoyi-redis:
+    image: redis:7-alpine
+    container_name: ruoyi-redis
+    restart: always
+    command: redis-server
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ruoyi-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ruoyi-backend:
+    build: ./backend
+    container_name: ruoyi-backend
+    restart: always
+    depends_on:
+      ruoyi-mysql:
+        condition: service_healthy
+      ruoyi-redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # 数据库连接配置（注意：Spring Boot环境变量需要转换为小写加下划线格式）
+      SPRING_DATASOURCE_DRUID_MASTER_URL: jdbc:mysql://ruoyi-mysql:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_DRUID_MASTER_USERNAME: root
+      SPRING_DATASOURCE_DRUID_MASTER_PASSWORD: 123456
+      SPRING_REDIS_HOST: ruoyi-redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    networks:
+      - ruoyi-net
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep java | grep -v grep || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  ruoyi-web-ui:
+    build: ./web-ui
+    container_name: ruoyi-web-ui
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - ruoyi-backend
+    environment:
+      BACKEND_HOST: ruoyi-backend
+      BACKEND_PORT: 8080
+    networks:
+      - ruoyi-net
+
+  ruoyi-h5-ui:
+    build: ./h5-ui
+    container_name: ruoyi-h5-ui
+    restart: always
+    ports:
+      - "81:81"
+    depends_on:
+      - ruoyi-backend
+    environment:
+      BACKEND_HOST: ruoyi-backend
+      BACKEND_PORT: 8080
+    networks:
+      - ruoyi-net
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  ruoyi-net:
+    driver: bridge

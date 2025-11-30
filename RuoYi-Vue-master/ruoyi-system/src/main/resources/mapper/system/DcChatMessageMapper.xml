@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DcChatMessageMapper">
+    
+    <resultMap type="DcChatMessage" id="DcChatMessageResult">
+        <result property="messageId"        column="message_id"        />
+        <result property="sessionId"       column="session_id"        />
+        <result property="senderId"        column="sender_id"         />
+        <result property="receiverId"      column="receiver_id"       />
+        <result property="messageContent"  column="message_content"   />
+        <result property="messageType"     column="message_type"      />
+        <result property="isRead"          column="is_read"           />
+        <result property="readTime"        column="read_time"          />
+        <result property="delFlag"         column="del_flag"           />
+        <result property="createTime"      column="create_time"       />
+        <result property="senderNickName"  column="sender_nick_name"  />
+        <result property="senderAvatar"    column="sender_avatar"     />
+    </resultMap>
+
+    <sql id="selectDcChatMessageVo">
+        select m.message_id, m.session_id, m.sender_id, m.receiver_id, m.message_content,
+               m.message_type, m.is_read, m.read_time, m.del_flag, m.create_time,
+               u.nick_name as sender_nick_name, u.avatar as sender_avatar
+        from dc_chat_message m
+        left join sys_user u on m.sender_id = u.user_id
+    </sql>
+
+    <select id="selectDcChatMessageListBySessionId" parameterType="Long" resultMap="DcChatMessageResult">
+        <include refid="selectDcChatMessageVo"/>
+        where m.session_id = #{sessionId} and m.del_flag = '0'
+        order by m.create_time asc
+    </select>
+    
+    <insert id="insertDcChatMessage" parameterType="DcChatMessage" useGeneratedKeys="true" keyProperty="messageId">
+        insert into dc_chat_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sessionId != null">session_id,</if>
+            <if test="senderId != null">sender_id,</if>
+            <if test="receiverId != null">receiver_id,</if>
+            <if test="messageContent != null and messageContent != ''">message_content,</if>
+            <if test="messageType != null">message_type,</if>
+            <if test="isRead != null">is_read,</if>
+            <if test="delFlag != null">del_flag,</if>
+            create_time
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="sessionId != null">#{sessionId},</if>
+            <if test="senderId != null">#{senderId},</if>
+            <if test="receiverId != null">#{receiverId},</if>
+            <if test="messageContent != null and messageContent != ''">#{messageContent},</if>
+            <if test="messageType != null">#{messageType},</if>
+            <if test="isRead != null">#{isRead},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            sysdate()
+         </trim>
+    </insert>
+
+    <update id="markAsRead">
+        update dc_chat_message
+        set is_read = '1', read_time = sysdate()
+        where session_id = #{sessionId} and receiver_id = #{receiverId} and is_read = '0'
+    </update>
+
+</mapper>
+
